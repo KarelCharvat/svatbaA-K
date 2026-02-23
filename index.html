@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Anastasiya & Karel — 7. června 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green:#6b8f5e; --green-light:#8aab7a; --green-pale:#d4e3cc;
+      --green-muted:#a8c49a; --cream:#faf8f4; --cream-dark:#f2ede4;
+      --text:#2c3a28; --text-light:#5a7050;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--cream);color:var(--text);font-family:'Jost',sans-serif;
+      font-weight:300;overflow-x:hidden;cursor:none;}
+
+    /* ── CURSOR ── */
+    #cur{position:fixed;width:8px;height:8px;background:var(--green);border-radius:50%;
+      pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+      transition:width .3s,height .3s,background .3s;}
+    #cur-ring{position:fixed;width:34px;height:34px;border:1px solid var(--green-muted);
+      border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.5;
+      transition:width .3s,height .3s;}
+
+    /* ── PROGRESS ── */
+    #prog{position:fixed;top:0;left:0;height:2px;width:0%;
+      background:linear-gradient(90deg,var(--green-pale),var(--green),var(--green-light));z-index:1000;}
+
+    /* ── PETAL CANVAS ── */
+    #petals{position:fixed;inset:0;pointer-events:none;z-index:1;}
+
+    /* ── NAV ── */
+    nav{position:fixed;top:2px;left:0;right:0;z-index:500;
+      display:flex;justify-content:center;gap:2.5rem;padding:1.2rem 2rem;
+      background:rgba(250,248,244,0);backdrop-filter:blur(0px);
+      border-bottom:1px solid transparent;
+      transition:background .6s,backdrop-filter .6s,border-color .6s;}
+    nav.scrolled{background:rgba(250,248,244,.93);backdrop-filter:blur(12px);border-color:var(--green-pale);}
+    nav a{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-light);
+      text-decoration:none;transition:color .3s;position:relative;padding:.2rem 0;}
+    nav a::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:1px;
+      background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .35s ease;}
+    nav a:hover{color:var(--green);}
+    nav a:hover::after{transform:scaleX(1);}
+
+    /* ── HERO ── */
+    #hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;position:relative;padding:7rem 2rem 4rem;overflow:hidden;text-align:center;}
+    .hero-bg{position:absolute;inset:0;
+      background:radial-gradient(ellipse 90% 70% at 50% 40%,var(--green-pale) 0%,var(--cream) 65%);
+      animation:bgPulse 8s ease-in-out infinite;}
+    @keyframes bgPulse{
+      0%,100%{background:radial-gradient(ellipse 90% 70% at 50% 40%,var(--green-pale) 0%,var(--cream) 65%);}
+      50%{background:radial-gradient(ellipse 105% 85% at 52% 45%,#c4d9bc 0%,var(--cream) 68%);}
+    }
+
+    .bc{position:absolute;width:340px;height:340px;opacity:.17;pointer-events:none;will-change:transform;}
+    .bc.tl{top:0;left:0;}
+    .bc.tr{top:0;right:0;transform:scaleX(-1);}
+    .bc.bl{bottom:0;left:0;transform:scaleY(-1);}
+    .bc.br{bottom:0;right:0;transform:scale(-1);}
+
+    .hero-content{position:relative;z-index:2;}
+
+    .hero-tagline{font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--green);
+      margin-bottom:2rem;opacity:0;animation:fadeUp .9s .2s cubic-bezier(.22,1,.36,1) forwards;}
+
+    /* Typewriter */
+    .hero-names{font-family:'Cormorant Garamond',serif;
+      font-size:clamp(3.8rem,11vw,8.5rem);font-weight:300;line-height:.9;color:var(--green);letter-spacing:.02em;}
+    .type-line{display:block;overflow:hidden;white-space:nowrap;
+      border-right:2px solid var(--green);width:0;
+      animation:typeReveal 1.4s cubic-bezier(.22,1,.36,1) forwards;}
+    .type-line.name1{animation-delay:.8s;}
+    .type-line.name2{animation-delay:2.4s;}
+    .type-line.amp-line{font-size:.38em;font-style:italic;color:var(--green-light);
+      width:auto;border-right:none;opacity:0;
+      animation:fadeUp .6s 2.1s cubic-bezier(.22,1,.36,1) forwards;}
+    @keyframes typeReveal{
+      0%{width:0;border-right-color:var(--green);}
+      90%{border-right-color:var(--green);}
+      100%{width:100%;border-right-color:transparent;}
+    }
+
+    .hero-divider{width:0;height:1px;background:var(--green-muted);margin:2rem auto;
+      animation:expandLine 1s 3.4s cubic-bezier(.22,1,.36,1) forwards;}
+    @keyframes expandLine{to{width:80px;}}
+
+    .hero-date{font-size:.8rem;letter-spacing:.25em;text-transform:uppercase;color:var(--text-light);
+      opacity:0;animation:fadeUp .8s 3.6s cubic-bezier(.22,1,.36,1) forwards;}
+    .hero-venue{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;
+      color:var(--green);margin-top:.5rem;
+      opacity:0;animation:fadeUp .8s 3.8s cubic-bezier(.22,1,.36,1) forwards;}
+
+    /* Countdown */
+    .countdown{display:flex;gap:2rem;justify-content:center;margin-top:2.5rem;
+      opacity:0;animation:fadeUp .8s 4.1s cubic-bezier(.22,1,.36,1) forwards;}
+    .cd-block{text-align:center;}
+    .cd-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;
+      color:var(--green);line-height:1;display:block;}
+    .cd-num.tick{animation:numTick .35s ease;}
+    @keyframes numTick{0%{transform:translateY(-8px);opacity:.4;}100%{transform:translateY(0);opacity:1;}}
+    .cd-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--green-muted);
+      margin-top:.3rem;display:block;}
+
+    .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+      display:flex;flex-direction:column;align-items:center;gap:.5rem;
+      font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--green-light);
+      z-index:2;opacity:0;animation:fadeUp .8s 4.8s forwards;}
+    .scroll-line{width:1px;height:0;
+      background:linear-gradient(to bottom,var(--green-muted),transparent);
+      animation:growLine 1.5s 5s cubic-bezier(.22,1,.36,1) forwards;}
+    @keyframes growLine{to{height:40px;}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+    /* ── SECTIONS ── */
+    section{padding:6rem 2rem;}
+    .section-inner{max-width:800px;margin:0 auto;}
+    .section-label{font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--green-muted);display:block;margin-bottom:.8rem;}
+    .section-title{font-family:'Cormorant Garamond',serif;
+      font-size:clamp(2.2rem,5vw,3.2rem);font-weight:300;color:var(--green);
+      line-height:1.1;margin-bottom:2.5rem;}
+    .ornament{display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;}
+    .ornament-line{flex:1;height:1px;background:var(--green-pale);}
+    .ornament-leaf{color:var(--green-muted);font-size:1rem;}
+    p{line-height:1.8;color:var(--text-light);font-size:.95rem;margin-bottom:1rem;}
+
+    /* Clip reveal */
+    .clip-reveal{clip-path:inset(0 0 100% 0);transform:translateY(16px);
+      transition:clip-path .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);}
+    .clip-reveal.visible{clip-path:inset(0 0 0% 0);transform:translateY(0);}
+
+    /* Fade reveal */
+    .fade-reveal{opacity:0;transform:translateY(26px);
+      transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1);}
+    .fade-reveal.visible{opacity:1;transform:translateY(0);}
+    .d1{transition-delay:.08s;}.d2{transition-delay:.17s;}.d3{transition-delay:.26s;}.d4{transition-delay:.35s;}
+
+    /* ── PROGRAM ── */
+    #program{background:var(--cream-dark);}
+    .timeline{position:relative;padding-left:2rem;}
+    .tl-track{position:absolute;left:0;top:0;bottom:0;width:1px;
+      background:var(--green-pale);transform-origin:top;transform:scaleY(0);
+      transition:transform 1.4s cubic-bezier(.22,1,.36,1);}
+    .tl-track.visible{transform:scaleY(1);}
+    .timeline-item{display:grid;grid-template-columns:80px 1fr;gap:1.5rem;padding:1.5rem 0;position:relative;}
+    .timeline-item::before{content:'';position:absolute;left:-2rem;top:50%;
+      width:9px;height:9px;border-radius:50%;background:var(--cream);
+      border:2px solid var(--green-pale);transform:translate(-50%,-50%) scale(0);
+      transition:transform .5s cubic-bezier(.34,1.56,.64,1),background .3s,border-color .3s;}
+    .timeline-item.visible::before{transform:translate(-50%,-50%) scale(1);border-color:var(--green-muted);}
+    .timeline-item:hover::before{background:var(--green-muted);transform:translate(-50%,-50%) scale(1.5)!important;}
+    .timeline-time{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;
+      color:var(--green);line-height:1;padding-top:.1rem;}
+    .timeline-time span{display:block;font-family:'Jost',sans-serif;font-size:.55rem;
+      letter-spacing:.15em;text-transform:uppercase;color:var(--green-muted);margin-top:.2rem;}
+    .timeline-text h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;
+      color:var(--text);margin-bottom:.3rem;}
+    .timeline-text p{font-size:.85rem;margin-bottom:0;}
+
+    /* ── STORY ── */
+    .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
+    .photo-placeholder{aspect-ratio:3/4;background:var(--green-pale);border-radius:2px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
+      color:var(--green-muted);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+      border:1px dashed var(--green-muted);transition:background .3s,transform .4s cubic-bezier(.22,1,.36,1);}
+    .photo-placeholder:hover{background:#c2d8b8;transform:scale(1.03);}
+    .photo-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:.8rem;height:400px;}
+    .photo-grid .photo-placeholder:first-child{grid-row:span 2;aspect-ratio:unset;}
+
+    /* ── LOGISTICS ── */
+    #logistics{background:var(--cream-dark);}
+    .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+    .card{background:var(--cream);border:1px solid var(--green-pale);padding:2rem;border-radius:2px;
+      position:relative;overflow:hidden;
+      transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s cubic-bezier(.22,1,.36,1),border-color .3s;}
+    .card-shine{position:absolute;inset:0;
+      background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);
+      transform:translateX(-120%);transition:transform .65s ease;}
+    .card:hover .card-shine{transform:translateX(120%);}
+    .card:hover{transform:translateY(-7px);box-shadow:0 20px 50px rgba(107,143,94,.14);border-color:var(--green-muted);}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--green-pale),var(--green-muted),var(--green-pale));
+      transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.22,1,.36,1);}
+    .card:hover::before{transform:scaleX(1);}
+    .card-icon{width:36px;height:36px;margin-bottom:1rem;color:var(--green-muted);}
+    .card h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;color:var(--green);margin-bottom:.8rem;}
+    .card p{font-size:.88rem;margin-bottom:.5rem;}
+    .card a{color:var(--green);text-decoration:none;font-size:.8rem;letter-spacing:.1em;
+      display:inline-flex;align-items:center;gap:.4rem;margin-top:.8rem;
+      border-bottom:1px solid var(--green-pale);padding-bottom:2px;transition:border-color .3s;}
+    .card a:hover{border-color:var(--green);}
+
+    /* ── RSVP ── */
+    #rsvp{text-align:center;}
+    .rsvp-wrapper{max-width:700px;margin:0 auto;}
+    .rsvp-note{background:var(--green-pale);border-left:3px solid var(--green-muted);
+      padding:1rem 1.5rem;margin-bottom:2rem;text-align:left;font-size:.85rem;}
+    .rsvp-note strong{color:var(--green);font-weight:400;}
+    .form-embed{background:var(--cream-dark);border:1px solid var(--green-pale);
+      padding:3rem 2rem;color:var(--text-light);font-size:.9rem;}
+    .form-embed .form-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--green);margin-bottom:.5rem;}
+    .form-embed code{display:block;margin-top:1.5rem;padding:.8rem 1rem;
+      background:rgba(107,143,94,.08);border:1px dashed var(--green-pale);
+      font-size:.75rem;color:var(--green);font-family:monospace;text-align:left;word-break:break-all;}
+    .form-embed iframe{width:100%;border:none;min-height:900px;}
+
+    /* ── FAQ ── */
+    #faq{background:var(--cream-dark);}
+    .faq-list{display:flex;flex-direction:column;}
+    .faq-item{border-bottom:1px solid var(--green-pale);padding:1.5rem 0;}
+    .faq-item:first-child{border-top:1px solid var(--green-pale);}
+    .faq-q{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;
+      color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+    .faq-icon{width:24px;height:24px;border:1px solid var(--green-pale);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;color:var(--green-muted);
+      font-size:1.1rem;font-weight:200;flex-shrink:0;
+      transition:transform .45s cubic-bezier(.34,1.56,.64,1),background .3s,border-color .3s;}
+    .faq-item.open .faq-icon{transform:rotate(45deg);background:var(--green-pale);border-color:var(--green-muted);}
+    .faq-a{overflow:hidden;max-height:0;opacity:0;
+      transition:max-height .5s cubic-bezier(.22,1,.36,1),opacity .4s ease,padding .3s;}
+    .faq-item.open .faq-a{max-height:300px;opacity:1;padding-top:1rem;}
+    .faq-a p{margin-bottom:0;}
+
+    /* ── FOOTER ── */
+    footer{background:var(--green);color:var(--green-pale);text-align:center;
+      padding:4rem 2rem 3rem;position:relative;overflow:hidden;}
+    footer::before{content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(255,255,255,.07),transparent);}
+    .footer-names{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;
+      letter-spacing:.05em;color:white;opacity:.9;position:relative;}
+    .footer-amp{font-style:italic;color:var(--green-pale);}
+    footer p{color:var(--green-pale);font-size:.75rem;letter-spacing:.15em;opacity:.7;margin-top:1rem;}
+    footer a{color:var(--green-pale);text-decoration:none;border-bottom:1px solid rgba(212,227,204,.4);}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:640px){
+      body{cursor:auto;}
+      #cur,#cur-ring{display:none;}
+      nav{gap:1.2rem;flex-wrap:wrap;padding:.9rem 1rem;}
+      nav a{font-size:.6rem;}
+      .story-grid,.cards-grid{grid-template-columns:1fr;}
+      .photo-grid{height:280px;}
+      .bc{width:180px;height:180px;}
+      .timeline{padding-left:1.5rem;}
+      .timeline-item{grid-template-columns:60px 1fr;gap:1rem;}
+      .countdown{gap:1.2rem;}
+      .cd-num{font-size:2rem;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<canvas id="petals"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#program">Program</a>
+  <a href="#story">Náš příběh</a>
+  <a href="#logistics">Jak se dostat</a>
+  <a href="#rsvp">Potvrdit účast</a>
+  <a href="#faq">FAQ</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <svg class="bc tl" id="c-tl" viewBox="0 0 300 300" fill="none">
+    <path d="M10 280C40 200 80 160 150 100C180 75 220 50 290 10" stroke="#6b8f5e" stroke-width="1.5"/>
+    <ellipse cx="60" cy="200" rx="35" ry="20" transform="rotate(-30 60 200)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="100" cy="160" rx="28" ry="16" transform="rotate(-50 100 160)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="150" cy="110" rx="30" ry="18" transform="rotate(-70 150 110)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <circle cx="80" cy="140" r="8" fill="none" stroke="#6b8f5e" stroke-width="1"/>
+    <circle cx="180" cy="80" r="12" fill="none" stroke="#6b8f5e" stroke-width="1"/>
+    <ellipse cx="200" cy="55" rx="22" ry="14" transform="rotate(-80 200 55)" fill="none" stroke="#6b8f5e" stroke-width="1"/>
+    <path d="M230 30Q245 20 260 25Q250 35 235 38Z" fill="#6b8f5e" opacity=".5"/>
+    <path d="M245 28Q260 15 275 18Q268 30 252 33Z" fill="#6b8f5e" opacity=".4"/>
+  </svg>
+  <svg class="bc tr" id="c-tr" viewBox="0 0 300 300" fill="none">
+    <path d="M10 280C40 200 80 160 150 100C180 75 220 50 290 10" stroke="#6b8f5e" stroke-width="1.5"/>
+    <ellipse cx="60" cy="200" rx="35" ry="20" transform="rotate(-30 60 200)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="100" cy="160" rx="28" ry="16" transform="rotate(-50 100 160)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="150" cy="110" rx="30" ry="18" transform="rotate(-70 150 110)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <circle cx="180" cy="80" r="12" fill="none" stroke="#6b8f5e" stroke-width="1"/>
+    <path d="M230 30Q245 20 260 25Q250 35 235 38Z" fill="#6b8f5e" opacity=".5"/>
+  </svg>
+  <svg class="bc bl" id="c-bl" viewBox="0 0 300 300" fill="none">
+    <path d="M10 280C40 200 80 160 150 100C180 75 220 50 290 10" stroke="#6b8f5e" stroke-width="1.5"/>
+    <ellipse cx="60" cy="200" rx="35" ry="20" transform="rotate(-30 60 200)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="100" cy="160" rx="28" ry="16" transform="rotate(-50 100 160)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="150" cy="110" rx="30" ry="18" transform="rotate(-70 150 110)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+  </svg>
+  <svg class="bc br" id="c-br" viewBox="0 0 300 300" fill="none">
+    <path d="M10 280C40 200 80 160 150 100C180 75 220 50 290 10" stroke="#6b8f5e" stroke-width="1.5"/>
+    <ellipse cx="60" cy="200" rx="35" ry="20" transform="rotate(-30 60 200)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+    <ellipse cx="100" cy="160" rx="28" ry="16" transform="rotate(-50 100 160)" fill="none" stroke="#6b8f5e" stroke-width="1.2"/>
+  </svg>
+
+  <div class="hero-content">
+    <p class="hero-tagline">Přijměte prosím naše pozvání na den, kdy si řekneme ano</p>
+    <div class="hero-names">
+      <span class="type-line name1">Anastasiya</span>
+      <span class="type-line amp-line">&amp;</span>
+      <span class="type-line name2">Karel</span>
+    </div>
+    <div class="hero-divider"></div>
+    <p class="hero-date">7. června 2026 &nbsp;|&nbsp; od 12:00</p>
+    <p class="hero-venue">Na Kmíně, Obříství</p>
+    <div class="countdown">
+      <div class="cd-block"><span class="cd-num" id="cd-d">—</span><span class="cd-label">dní</span></div>
+      <div class="cd-block"><span class="cd-num" id="cd-h">—</span><span class="cd-label">hodin</span></div>
+      <div class="cd-block"><span class="cd-num" id="cd-m">—</span><span class="cd-label">minut</span></div>
+      <div class="cd-block"><span class="cd-num" id="cd-s">—</span><span class="cd-label">sekund</span></div>
+    </div>
+  </div>
+  <div class="scroll-hint">sroluj dolů<div class="scroll-line"></div></div>
+</section>
+
+<!-- PROGRAM -->
+<section id="program">
+  <div class="section-inner">
+    <span class="section-label fade-reveal">Harmonogram dne</span>
+    <h2 class="section-title clip-reveal">Program</h2>
+    <div class="ornament fade-reveal d1"><div class="ornament-line"></div><span class="ornament-leaf">❧</span><div class="ornament-line"></div></div>
+    <div class="timeline">
+      <div class="tl-track"></div>
+      <div class="timeline-item fade-reveal d1">
+        <div class="timeline-time">12:00<span>hod.</span></div>
+        <div class="timeline-text"><h3>Příchod hostů</h3><p>Vítáme vás na statku Na Kmíně. Přijďte si na uvítanou skleničku a přivítejte se s ostatními hosty.</p></div>
+      </div>
+      <div class="timeline-item fade-reveal d2">
+        <div class="timeline-time">13:00<span>hod.</span></div>
+        <div class="timeline-text"><h3>Obřad</h3><p>Slavnostní okamžik — říkáme si ANO.</p></div>
+      </div>
+      <div class="timeline-item fade-reveal d3">
+        <div class="timeline-time">14:00<span>hod.</span></div>
+        <div class="timeline-text"><h3>Svatební hostina</h3><p>Slavnostní oběd, přípitky a první tanec novomanželů.</p></div>
+      </div>
+      <div class="timeline-item fade-reveal d4">
+        <div class="timeline-time">18:00<span>hod.</span></div>
+        <div class="timeline-text"><h3>Taneční zábava</h3><p>Hudba, tanec a dobré nálady do pozdních hodin.</p></div>
+      </div>
+    </div>
+    <p class="fade-reveal" style="margin-top:2rem;font-size:.82rem;font-style:italic;color:var(--green-muted);">✎ Detailní program doplníme brzy.</p>
+  </div>
+</section>
+
+<!-- STORY -->
+<section id="story">
+  <div class="section-inner">
+    <span class="section-label fade-reveal">Náš příběh</span>
+    <h2 class="section-title clip-reveal">Jak to začalo</h2>
+    <div class="ornament fade-reveal d1"><div class="ornament-line"></div><span class="ornament-leaf">❧</span><div class="ornament-line"></div></div>
+    <div class="story-grid">
+      <div class="fade-reveal d1">
+        <p>Tady napište váš příběh — kde jste se poznali, co vás sblížilo, a jak Karel požádal Anastasiyou o ruku. Hosté to budou milovat. 💚</p>
+        <p>Stačí otevřít soubor v textovém editoru a nahradit tento odstavec vaším vlastním příběhem.</p>
+        <p style="margin-top:1.5rem;font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;color:var(--green);">"A tehdy jsme věděli, že tohle je ten pravý."</p>
+      </div>
+      <div class="photo-grid fade-reveal d2">
+        <div class="photo-placeholder">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Vaše foto</span>
+        </div>
+        <div class="photo-placeholder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+        <div class="photo-placeholder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGISTICS -->
+<section id="logistics">
+  <div class="section-inner">
+    <span class="section-label fade-reveal">Praktické informace</span>
+    <h2 class="section-title clip-reveal">Jak se dostat & ubytování</h2>
+    <div class="ornament fade-reveal d1"><div class="ornament-line"></div><span class="ornament-leaf">❧</span><div class="ornament-line"></div></div>
+    <div class="cards-grid">
+      <div class="card fade-reveal d1"><div class="card-shine"></div>
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <h3>Místo konání</h3><p>Na Kmíně<br/>Bedřicha Smetany 24<br/>Obříství</p>
+        <a href="https://maps.google.com/?q=Bedřicha+Smetany+24,+Obříství" target="_blank" rel="noopener">Otevřít v Mapách →</a>
+      </div>
+      <div class="card fade-reveal d2"><div class="card-shine"></div>
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <h3>Doprava</h3><p>Parkování u areálu zdarma. Z Prahy cca 30 minut autem po D8.</p><p>Potřebujete odvoz? Uveďte to v dotazníku.</p>
+      </div>
+      <div class="card fade-reveal d3"><div class="card-shine"></div>
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <h3>Ubytování</h3><p>V areálu Na Kmíně je k dispozici ubytování. Kapacita je omezená — dejte nám vědět co nejdříve v dotazníku.</p>
+        <a href="#rsvp">Rezervovat v dotazníku →</a>
+      </div>
+      <div class="card fade-reveal d4"><div class="card-shine"></div>
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <h3>Dress code</h3><p>Slavnostní elegance. Preferujeme přírodní a zemité tóny — přijďte tak, jak se budete cítit krásně. 🌿</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RSVP -->
+<section id="rsvp">
+  <div class="section-inner rsvp-wrapper">
+    <span class="section-label fade-reveal">Potvrzení účasti</span>
+    <h2 class="section-title clip-reveal">Dejte nám vědět</h2>
+    <div class="ornament fade-reveal d1"><div class="ornament-line"></div><span class="ornament-leaf">❧</span><div class="ornament-line"></div></div>
+    <div class="rsvp-note fade-reveal d2">
+      <strong>Prosíme o vyplnění dotazníku do 1. dubna 2026.</strong> Pomůže nám to s přípravou jídla, ubytování a dalšími detaily.
+    </div>
+    <!--
+      JAK VLOŽIT GOOGLE FORMS:
+      1. forms.google.com → Odeslat → ikona <>
+      2. Zkopírujte iframe kód
+      3. Nahraďte celý element .form-embed tímto iframe kódem
+    -->
+    <div class="form-embed fade-reveal d3">
+      <p class="form-title">Dotazník pro hosty</p>
+      <p>Brzy zde bude formulář pro potvrzení účasti.</p>
+      <code>&lt;!-- SEM VLOŽTE VÁŠ GOOGLE FORMS IFRAME --&gt;</code>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-inner">
+    <span class="section-label fade-reveal">Časté otázky</span>
+    <h2 class="section-title clip-reveal">FAQ</h2>
+    <div class="ornament fade-reveal d1"><div class="ornament-line"></div><span class="ornament-leaf">❧</span><div class="ornament-line"></div></div>
+    <div class="faq-list">
+      <div class="faq-item fade-reveal"><div class="faq-q">Mohu přivézt děti?<span class="faq-icon">+</span></div><div class="faq-a"><p>Samozřejmě! Děti jsou vítány. Uveďte jejich počet v dotazníku.</p></div></div>
+      <div class="faq-item fade-reveal d1"><div class="faq-q">Jak se dostat bez auta?<span class="faq-icon">+</span></div><div class="faq-a"><p>Z Prahy jezdí vlaky do Mělníka, odkud je ~10 minut taxíkem. V dotazníku lze domluvit odvoz s ostatními hosty.</p></div></div>
+      <div class="faq-item fade-reveal d2"><div class="faq-q">Je v areálu wifi?<span class="faq-icon">+</span></div><div class="faq-a"><p>Ano. Heslo dostanete při příchodu. Šatna a úschovna pro věci bude zajištěna.</p></div></div>
+      <div class="faq-item fade-reveal d3"><div class="faq-q">Mohu fotit obřad?<span class="faq-icon">+</span></div><div class="faq-a"><p>Focení vítáme! Prosíme jen nesedejte do uliček. Po obřadu je focení zcela volné. 📷</p></div></div>
+      <div class="faq-item fade-reveal d4"><div class="faq-q">Co dát jako dárek?<span class="faq-icon">+</span></div><div class="faq-a"><p>Vaše přítomnost je tím nejlepším dárkem. Pokud chcete přidat finanční příspěvek, budeme rádi.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-names fade-reveal">Anastasiya <span class="footer-amp">&amp;</span> Karel</div>
+  <p>7. června 2026 · Na Kmíně, Obříství</p>
+  <p style="margin-top:2rem;">Dotazy? <a href="mailto:vas@email.cz">vas@email.cz</a></p>
+  <p style="margin-top:2.5rem;font-size:.65rem;opacity:.4;letter-spacing:.1em;">✦ Těšíme se na vás ✦</p>
+</footer>
+
+<script>
+// ── CURSOR
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function loop(){
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  rx+=(mx-rx)*.1;ry+=(my-ry)*.1;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(loop);
+})();
+
+// ── PROGRESS
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  prog.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';
+},{passive:true});
+
+// ── NAV
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+},{passive:true});
+
+// ── PARALLAX CORNERS
+const ctl=document.getElementById('c-tl'),ctr=document.getElementById('c-tr'),
+      cbl=document.getElementById('c-bl'),cbr=document.getElementById('c-br');
+window.addEventListener('scroll',()=>{
+  const f=window.scrollY*.12;
+  ctl.style.transform=`translate(-${f*.5}px,-${f}px)`;
+  ctr.style.transform=`scaleX(-1) translate(-${f*.5}px,-${f}px)`;
+  cbl.style.transform=`scaleY(-1) translate(-${f*.3}px,${f*.5}px)`;
+  cbr.style.transform=`scale(-1) translate(-${f*.3}px,${f*.5}px)`;
+},{passive:true});
+
+// ── COUNTDOWN
+function tick(){
+  const diff=new Date('2026-06-07T12:00:00')-new Date();
+  if(diff<=0)return;
+  const vals={d:Math.floor(diff/86400000),h:Math.floor(diff%86400000/3600000),
+               m:Math.floor(diff%3600000/60000),s:Math.floor(diff%60000/1000)};
+  Object.entries(vals).forEach(([k,v])=>{
+    const el=document.getElementById('cd-'+k);
+    const s=String(v).padStart(2,'0');
+    if(el.textContent!==s){el.textContent=s;el.classList.remove('tick');void el.offsetWidth;el.classList.add('tick');}
+  });
+}
+setInterval(tick,1000);tick();
+
+// ── FALLING PETALS
+const canvas=document.getElementById('petals');
+const ctx=canvas.getContext('2d');
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+
+const petals=Array.from({length:30},(_,i)=>{
+  const p={
+    x:Math.random()*innerWidth,
+    y:i<15?Math.random()*innerHeight:-20,
+    size:8+Math.random()*14,
+    vy:.3+Math.random()*.9,
+    vx:(Math.random()-.5)*.5,
+    rot:Math.random()*Math.PI*2,
+    vr:(Math.random()-.5)*.025,
+    wb:Math.random()*Math.PI*2,
+    ws:.015+Math.random()*.025,
+    op:.2+Math.random()*.35,
+    hue:120+Math.random()*20,
+  };
+  return p;
+});
+
+function drawPetal(p){
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.rotate(p.rot);
+  ctx.globalAlpha=p.op;
+  // outer petal
+  ctx.beginPath();
+  ctx.ellipse(0,0,p.size*.45,p.size,0,0,Math.PI*2);
+  ctx.fillStyle=`hsl(${p.hue},30%,68%)`;
+  ctx.fill();
+  // vein
+  ctx.beginPath();
+  ctx.moveTo(0,-p.size);ctx.lineTo(0,p.size);
+  ctx.strokeStyle=`hsla(${p.hue},25%,55%,.4)`;
+  ctx.lineWidth=.7;ctx.stroke();
+  // highlight
+  ctx.beginPath();
+  ctx.ellipse(-p.size*.1,-p.size*.2,p.size*.18,p.size*.4,-.3,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.22)';
+  ctx.fill();
+  ctx.restore();
+}
+
+(function animPetals(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  petals.forEach(p=>{
+    p.wb+=p.ws;
+    p.x+=p.vx+Math.sin(p.wb)*.6;
+    p.y+=p.vy;
+    p.rot+=p.vr;
+    if(p.y>canvas.height+30){p.y=-20;p.x=Math.random()*canvas.width;}
+    drawPetal(p);
+  });
+  requestAnimationFrame(animPetals);
+})();
+
+// ── SCROLL REVEAL
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+},{threshold:.1});
+document.querySelectorAll('.fade-reveal,.clip-reveal,.tl-track,.timeline-item').forEach(el=>obs.observe(el));
+
+// ── FAQ
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click',()=>{
+    const item=q.parentElement,open=item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+    if(!open)item.classList.add('open');
+  });
+});
+</script>
+</body>
+</html>
